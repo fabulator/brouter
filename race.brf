@@ -52,7 +52,7 @@ assign turncost = if junction=roundabout then 0
                   else 90
 
 assign initialclassifier =
-     if route=ferry then 1
+     if route=ferry then 10000
      else 0
 
 assign initialcost switch route=ferry 10000 0
@@ -153,6 +153,7 @@ assign costfactor
 
   multiply smoothFactor
 
+  switch    route=ferry            10000
   switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned            10000
   switch    highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway      baseCost
   switch    highway=unclassified|pedestrian|bridleway|rest_area                                        switch isunpaved multiply baseCost 2 baseCost
@@ -167,7 +168,7 @@ assign costfactor
    switch tracktype=grade5                                                                             multiply multiply baseCost 10 unpavedFactor
    switch or bicycle=designated bicycle_road=yes                                                       baseCost
    switch ispaved                                                                                      baseCost multiply multiply baseCost 10 unpavedFactor
-  0
+  baseCost
 
 ---context:node  # following code refers to node tags
 

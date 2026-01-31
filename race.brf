@@ -11,19 +11,13 @@ assign validForBikes = true
 # Use the following switches to change behaviour
 assign allow_steps           = true   # %allow_steps% | Povolit schody | boolean
 
-assign consider_town         = true
-
 # Change elevation parameters
-assign consider_elevation = true
 assign downhillcost       = 0    # %downhillcost% | Cena za jízdu z kopce | number
 assign downhillcutoff     = 8   # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
 assign uphillcost         = 10     # %uphillcost% | Cena za jízdu do kopce | number
 assign uphillcutoff       = 0   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
 assign unpavedFactor       = 1    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
-
-assign downhillcost       = if consider_elevation then downhillcost else 0
-assign uphillcost         = if consider_elevation then uphillcost else 0
 
 # Kinematic model parameters (travel time computation)
 assign totalMass  = 86     # %totalMass% | Celková váha (kolo, výbava + jezdec), pouze pro výpočet času jízdy | number
@@ -38,66 +32,37 @@ assign turnInstructionCatchingRange = 40
 assign turnInstructionRoundabouts   = true
 assign considerTurnRestrictions     = true
 
-assign processUnusedTags            = false
+assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-assign any_cycleroute or route_bicycle_icn=yes or route_bicycle_ncn=yes or route_bicycle_rcn=yes route_bicycle_lcn=yes
-assign nodeaccessgranted or any_cycleroute lcn=yes
+#assign any_cycleroute or route_bicycle_icn=yes or route_bicycle_ncn=yes or route_bicycle_rcn=yes route_bicycle_lcn=yes
+#assign nodeaccessgranted or any_cycleroute lcn=yes
 
 assign ispaved or surface=paved or surface=asphalt or surface=concrete or surface=paving_stones or surface=sett surface=cobblestone
 assign isunpaved not or surface= or ispaved surface=fine_gravel
 
-assign turncost = if junction=roundabout then 0
-                  else 90
+assign turncost = if junction=roundabout then 0 else 90
+
+# classifier constants
+assign classifier_none        = 1
+assign classifier_ferry       = 2
 
 assign initialclassifier =
-     if route=ferry then 10000
-     else 0
+    if route=ferry then classifier_ferry
+    else classifier_none
 
-assign initialcost switch route=ferry 10000 0
-
-#
-# implicit access here just from the motorroad tag
-# (implicit access rules from highway tag handled elsewhere)
-#
-assign defaultaccess
-       switch access=
-              (
-                    if motorroad=yes then false
-                    else if highway=motorway|motorway_link then false
-                    else true
-              )
-              switch or access=private access=no
-                     false
-                     true
-
-#
-# calculate logical bike access
-#
-assign bikeaccess =
-       switch bicycle=
-              switch bicycle_road=yes
-                 true
-                 switch vehicle=
-                        ( if and highway=footway footway=sidewalk then false else defaultaccess )
-                        not vehicle=private|no
-              not or bicycle=private or bicycle=no bicycle=dismount
+assign initialcost =
+    if equal initialclassifier classifier_ferry then 10000
+    else 0
 
 assign accesspenalty
-       switch bikeaccess
-              0
-              switch any_cycleroute
-                  15
-                  10000
+    switch motorroad=yes 10000 # I can't access motorroads
+    switch highway=motorway|motorway_link 10000 # I can't access highways
+    switch or access=private or access=no bicycle=private 10000 # I can't access private roads
+    switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes ) 5 # I can't ride on sidewalks
+    0
 
-
-#
-# handle one-ways. On primary roads, wrong-oneways should
-# be close to forbidden, while on other ways we just add
-# 6 to the costfactor (making it at least 7 - you are allowed
-# to push your bike)
-#
 assign badoneway =
        if reversedirection=yes then
          if oneway:bicycle=yes then true
@@ -115,22 +80,20 @@ assign onewaypenalty =
          else if ( cycleway:left:oneway=no                   ) then 0
          else if ( cycleway:right:oneway=no                  ) then 0
          else if ( junction=roundabout|circular              ) then 60
-         else if ( highway=primary|primary_link              ) then 50
-         else if ( highway=secondary|secondary_link          ) then 30
+         else if ( highway=primary|primary_link|secondary|secondary_link              ) then 50
          else if ( highway=tertiary|tertiary_link            ) then 20
          else 6.0
        )
        else 0.0
 
 assign town_penalty
-   switch consider_town
-     switch estimated_town_class=  0
-     switch estimated_town_class=1  0.2
-     switch estimated_town_class=2  0.6
-     switch estimated_town_class=3  0.8
-     switch estimated_town_class=4  1
-     switch estimated_town_class=5  1.2
-     switch estimated_town_class=6  2 99 0
+   switch estimated_town_class=  0
+   switch estimated_town_class=1  0.2
+   switch estimated_town_class=2  0.6
+   switch estimated_town_class=3  0.8
+   switch estimated_town_class=4  1
+   switch estimated_town_class=5  1.2
+   switch estimated_town_class=6  2 99
 
 assign smoothFactor
   switch smoothness=excellent 0.8
@@ -143,12 +106,16 @@ assign smoothFactor
   switch smoothness=impassable 100.0
   switch surface=fine_gravel 1.3
   switch surface=cobblestone 1.4
+  switch highway=primary|primary_link|secondary|secondary_link 0.95 # You can expect better quality surface
   1.0
 
 assign baseCost 1.25
 
+assign isreversed = reversedirection=yes
+
 assign costfactor
-  add max onewaypenalty accesspenalty
+  add onewaypenalty
+  add accesspenalty
   add town_penalty
 
   multiply smoothFactor
@@ -159,7 +126,7 @@ assign costfactor
   switch    highway=unclassified|pedestrian|bridleway|rest_area                                        switch isunpaved multiply baseCost 2 baseCost
   switch    highway=steps                                                                              switch allow_steps 10 10000
   switch    highway=residential|living_street                                                          switch isunpaved multiply multiply baseCost 2 unpavedFactor multiply baseCost 1.1
-  switch    highway=service|cycleway                                                                   switch isunpaved multiply multiply baseCost 2 unpavedFactor baseCost
+  switch    highway=service                                                                   switch isunpaved multiply multiply baseCost 2 unpavedFactor baseCost
   switch or highway=track or highway=road or highway=path highway=footway
    switch tracktype=grade1                                                                             switch isunpaved multiply multiply baseCost 3 unpavedFactor baseCost
    switch tracktype=grade2                                                                             switch isunpaved multiply multiply baseCost 5 unpavedFactor multiply baseCost 1.7
@@ -168,47 +135,41 @@ assign costfactor
    switch tracktype=grade5                                                                             multiply multiply baseCost 10 unpavedFactor
    switch or bicycle=designated bicycle_road=yes                                                       baseCost
    switch ispaved                                                                                      baseCost multiply multiply baseCost 10 unpavedFactor
-  baseCost
+  10000 # I can't ride on rails
 
 ---context:node  # following code refers to node tags
 
-assign defaultaccess =
-       if ( access= ) then true # add default barrier restrictions here!
-       else if ( access=private|no ) then false
-       else true
+assign applyDirection =
+    switch and direction=backward way:isreversed 1
+    switch and direction=backward not way:isreversed 0
+    switch and direction=forward not way:isreversed 1
+    switch and direction=forward way:isreversed 0
+    0
 
-assign bikeaccess =
-       if nodeaccessgranted=yes then true
-       else if bicycle= then
-       (
-         if vehicle= then defaultaccess
-         else not vehicle=private|no
-       )
-       else not bicycle=private|no|dismount
-
-assign footaccess =
-       if bicycle=dismount then true
-       else if foot= then defaultaccess
-       else not foot=private|no
+assign applyTrafficDirection
+    switch and traffic_signals:direction=backward way:isreversed 1
+    switch and traffic_signals:direction=backward not way:isreversed 0
+    switch and traffic_signals:direction=forward not way:isreversed 1
+    switch and traffic_signals:direction=forward way:isreversed 0
+    0
 
 assign barrierPenalty
 	switch barrier=block|bollard 25
 	switch barrier=gate|swing_gate|lift_gate|entrance 50
 	switch barrier=cycle_barrier 90
-	switch and traffic_calming=bump not direction=backward 25
-	switch and traffic_calming=cushion not direction=backward 10
+	switch and traffic_calming=bump applyDirection 25
+	switch and traffic_calming=cushion applyDirection 10
 		0
 
 assign crossingsPenalty
 	switch railway=level_crossing 300
-	switch and highway=traffic_signals not traffic_signals:direction=backward 200
+	switch and highway=traffic_signals applyTrafficDirection 200
 	switch highway=crossing 25
-	switch and highway=give_way not direction=backward 80
-	switch and highway=stop not direction=backward 120
+	switch and highway=give_way applyDirection 80
+	switch and highway=stop applyDirection 120
 		0
 
 assign initialcost =
 	add barrierPenalty
 	add crossingsPenalty
-    if bikeaccess then 0
-    else ( if footaccess then 100 else 1000000 )
+    0

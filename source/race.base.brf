@@ -1,0 +1,96 @@
+#
+# Originaly a fastbike profile
+# Modified for road racing
+#
+
+---context:global   # following code refers to global config
+
+# Bike profile
+assign validForBikes = true
+
+# Use the following switches to change behaviour
+assign allow_steps           = true   # %allow_steps% | Povolit schody | boolean
+
+# Change elevation parameters
+assign downhillcost       = 0    # %downhillcost% | Cena za jízdu z kopce | number
+assign downhillcutoff     = 8   # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
+assign uphillcost         = 10     # %uphillcost% | Cena za jízdu do kopce | number
+assign uphillcutoff       = 0   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
+
+assign primaryCost         = 1     # %primaryCost% | Cena za jízdu po silnici první třídy | number
+
+assign unpavedFactor       = 1    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
+
+include base/global.speed.brf CR_SPEED=0.01
+
+# Turn instructions settings
+assign turnInstructionMode          = 1
+assign turnInstructionCatchingRange = 40
+assign turnInstructionRoundabouts   = true
+assign considerTurnRestrictions     = true
+
+assign processUnusedTags            = true
+
+---context:way   # following code refers to way-tags
+
+assign baseCost 1.25
+
+include base/way.surface.brf
+include base/way.initialcost.brf
+include base/way.accesspenalty.brf
+include base/way.oneway.brf
+
+assign isreversed = reversedirection=yes
+
+include base/way.town.brf TOWN_FACTOR=1
+
+# some road are paved by default and others unpaved by default
+# smooth unpaved has lower cost than rough unpaved
+assign unpavedRoadFactor
+    switch isPaved 1 multiply unpavedFactor switch isSmoothUnpaved 1.5 4
+
+assign wayCost
+    switch    route=ferry                                                                          10000 # not passable
+    switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
+    switch    highway=steps                                                                        switch allow_steps 10 10000
+    switch    highway=primary|primary_link                                                         multiply multiply primaryCost unpavedRoadFactor baseCost
+    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway
+        multiply unpavedRoadFactor baseCost
+    10000 # I can't ride on not roads
+
+# on these road I wont be able to ride fast
+assign trafficFactor
+  switch highway=pedestrian|footway     1.2
+  switch highway=living_street          1.1
+  1
+
+assign smoothFactor
+  switch smoothness=excellent 0.8
+  switch smoothness=good      0.9
+  switch smoothness=intermediate 1
+  switch smoothness=bad       1.2
+  switch smoothness=very_bad  1.4
+  switch smoothness=horrible  1.6
+  switch smoothness=very_horrible 2.0
+  switch smoothness=impassable 10
+  switch tracktype=grade1     1
+  switch tracktype=grade2     1.2
+  switch tracktype=grade3     1.5
+  switch tracktype=grade4     2
+  switch tracktype=grade5     2.5
+  switch surface=cobblestone 1.5 # cobblestone is paved, bu hard to ride on
+  switch highway=primary|primary_link|secondary|secondary_link 0.95 # You can expect better quality surface
+  1.0
+
+assign costfactor
+  add onewaypenalty
+  add accesspenalty
+  add town_penalty
+
+  multiply multiply smoothFactor trafficFactor wayCost
+
+assign turncost = if junction=roundabout then 0 else divide 100 costfactor
+
+---context:node  # following code refers to node tags
+
+include base/node.brf traffic_lights_avoideness=200

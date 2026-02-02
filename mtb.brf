@@ -1,31 +1,23 @@
 #
-# Originaly a fastbike profile
-# Modified for road racing
-#
+# It tries to find a long distance MTB route
+# It preferes MTB trails, paved climbs and unpaved downhills
 
 ---context:global   # following code refers to global config
 
 # Bike profile
 assign validForBikes = true
 
-# Use the following switches to change behaviour
-assign allow_steps           = true   # %allow_steps% | Povolit schody | boolean
-
 # Change elevation parameters
 assign downhillcost       = 0    # %downhillcost% | Cena za jízdu z kopce | number
 assign downhillcutoff     = 8   # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
-assign uphillcost         = 10     # %uphillcost% | Cena za jízdu do kopce | number
-assign uphillcutoff       = 0   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
-
-assign primaryCost         = 1     # %primaryCost% | Cena za jízdu po silnici první třídy | number
-
-assign unpavedFactor       = 1    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
+assign uphillcost         = 0     # %uphillcost% | Cena za jízdu do kopce | number
+assign uphillcutoff       = 5   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
 # Kinematic model parameters (travel time computation)
 assign totalMass  = 86     # %totalMass% | Celková váha (kolo, výbava + jezdec), pouze pro výpočet času jízdy | number
 assign maxSpeed   = 60
 assign S_C_x      = 0.225  # %S_C_x% | Odpor vzduchu, pouze pro výpočet času jízdy | number
-assign C_r        = 0.01   # %C_r% | Odpor plášťů, pouze pro výpočet času jízdy | number
+assign C_r        = 0.03   # %C_r% | Odpor plášťů, pouze pro výpočet času jízdy | number
 assign bikerPower = 180    # %bikerPower% | Průměrný výkon ve W, pouze pro výpočet času jízdy | number
 
 
@@ -39,7 +31,7 @@ assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-assign baseCost 1.25
+assign baseCost 4.6
 
 assign isSurfacePaved surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood
 assign isSurfaceSmoothUnpaved or surface=compacted|fine_gravel tracktype=grade1|grade2 # this is unpaved but not so bad...
@@ -102,7 +94,7 @@ assign onewaypenalty =
 
 assign isreversed = reversedirection=yes
 
-assign town_penalty_factor 1
+assign town_penalty_factor baseCost
 
 assign town_penalty
    switch estimated_town_class=   multiply 0 town_penalty_factor
@@ -115,54 +107,63 @@ assign town_penalty
    99
 
 
-# some road are paved by default and others unpaved by default
-# smooth unpaved has lower cost than rough unpaved
-assign unpavedRoadFactor
-    switch isPaved 1 multiply unpavedFactor switch isSmoothUnpaved 1.5 4
-
 assign wayCost
     switch    route=ferry                                                                          10000 # not passable
     switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
-    switch    highway=steps                                                                        switch allow_steps 10 10000
-    switch    highway=primary|primary_link                                                         multiply multiply primaryCost unpavedRoadFactor baseCost
-    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway
-        multiply unpavedRoadFactor baseCost
+    switch    highway=steps                                                                        10
+    switch    highway=primary|primary_link                                                         10
+    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway                                   baseCost
     10000 # I can't ride on not roads
 
-# on these road I wont be able to ride fast
-assign trafficFactor
-  switch highway=pedestrian|footway     1.2
-  switch highway=living_street          1.1
-  1
+assign surfaceCostFactor
+    switch    isPaved 1.4
+    switch    isSmoothUnpaved 1
+    switch    isUnpaved 1.1
+    1
 
-assign smoothFactor
-  switch smoothness=excellent 0.8
-  switch smoothness=good      0.9
-  switch smoothness=intermediate 1
-  switch smoothness=bad       1.2
-  switch smoothness=very_bad  1.4
-  switch smoothness=horrible  1.6
-  switch smoothness=very_horrible 2.0
-  switch smoothness=impassable 10
-  switch tracktype=grade1     1
-  switch tracktype=grade2     1.2
-  switch tracktype=grade3     1.5
-  switch tracktype=grade4     2
-  switch tracktype=grade5     2.5
-  switch surface=cobblestone 1.5 # cobblestone is paved, bu hard to ride on
-  switch highway=primary|primary_link|secondary|secondary_link 0.95 # You can expect better quality surface
-  1.0
+assign any_hiking_route or route=hiking         or route_hiking_iwn=yes
+						or route_hiking_nwn=yes	or route_hiking_rwn=yes
+						or route_hiking_lwn=yes or route_hiking_=yes
+                        or route_foot_=yes      or route_foot_nwn=yes
+						or route_foot_rwn=yes      route_foot_lwn=yes
+
+assign any_cycleroute =
+     if      route_bicycle_icn=yes then true
+     else if route_bicycle_ncn=yes then true
+     else if route_bicycle_rcn=yes then true
+     else if route_bicycle_lcn=yes then true
+     else false
+
+assign mtb_route
+     switch route_mtb_=yes  true
+     false
+
+assign markedPaths
+    switch    or any_cycleroute any_hiking_route 1.3
+    switch    or mtb_route and highway=path bicycle=designated 0.4
+    1.5
 
 assign costfactor
   add onewaypenalty
   add accesspenalty
   add town_penalty
+  multiply multiply markedPaths wayCost surfaceCostFactor
 
-  multiply multiply smoothFactor trafficFactor wayCost
+assign downhillcostfactor
+    switch isUnpaved multiply costfactor 0.5
+    switch isSmoothUnpaved multiply costfactor 0.6
+    multiply markedPaths costfactor
 
-assign turncost = if junction=roundabout then 0 else divide 100 costfactor
+assign uphillcostfactor
+    switch or mtb_route or isPaved isSmoothUnpaved multiply costfactor 0.5
+    multiply markedPaths costfactor
 
----context:node  # following code refers to node tags
+assign turncost
+    switch junction=roundabout 0
+    switch and highway=path bicycle=designated 0
+    100
+
+---context:node
 
 assign applyDirection =
     switch and direction=backward way:isreversed 1

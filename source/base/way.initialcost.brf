@@ -1,0 +1,16 @@
+# classifier constants
+assign classifier_none           = 1
+assign classifier_ferry          = 2
+assign classifier_crossing       = 3
+
+assign initialclassifier =
+    if route=ferry then classifier_ferry
+    else if footway=crossing then classifier_crossing
+    else classifier_none
+
+# do not use ferries
+assign initialcost =
+    if equal initialclassifier classifier_ferry then 10000
+    else if and equal initialclassifier classifier_crossing crossing=traffic_signals then 300
+    else if equal initialclassifier classifier_crossing then 150
+    else 0

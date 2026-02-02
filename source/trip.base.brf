@@ -37,13 +37,7 @@ assign uphillcutoff       = 10   # %uphillcutoff% | Sklony pod touto hodnotou v 
 assign downhillcost       = if consider_elevation then downhillcost else 0
 assign uphillcost         = if consider_elevation then uphillcost else 0
 
-# Kinematic model parameters (travel time computation)
-assign totalMass  = 86     # %totalMass% | Celková váha (kolo, výbava + jezdec), pouze pro výpočet času jízdy | number
-assign maxSpeed   = 60
-assign S_C_x      = 0.225  # %S_C_x% | Odpor vzduchu, pouze pro výpočet času jízdy | number
-assign C_r        = 0.02   # %C_r% | Odpor plášťů, pouze pro výpočet času jízdy | number
-assign bikerPower = 180    # %bikerPower% | Průměrný výkon ve W, pouze pro výpočet času jízdy | number
-
+include base/global.speed.brf CR_SPEED=0.02
 
 # Turn instructions settings
 assign turnInstructionMode          = 1
@@ -57,23 +51,7 @@ assign processUnusedTags            = false
 
 assign isreversed = reversedirection=yes
 
-# classifier constants
-assign classifier_none           = 1
-assign classifier_ferry          = 2
-assign classifier_crossing       = 3
-
-assign initialclassifier =
-    if route=ferry then classifier_ferry
-    else if footway=crossing then classifier_crossing
-    else classifier_none
-
-# do not use ferries
-assign initialcost =
-    if equal initialclassifier classifier_ferry then 10000
-    else if and equal initialclassifier classifier_crossing crossing=traffic_signals then 300
-    else if equal initialclassifier classifier_crossing then 150
-    else 0
-
+include base/way.initialcost.brf
 
 #
 # pre-calculate some logical expressions
@@ -120,36 +98,8 @@ assign turncost = if is_ldcr then 0
                   else if junction=roundabout then 0
                   else 90
 
-assign accesspenalty
-    switch motorroad=yes 10000 # I can't access motorroads
-    switch highway=motorway|motorway_link 10000 # I can't access highways
-    switch or access=private or access=no bicycle=private 10000 # I can't access private roads
-    switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes ) 5 # I shoudn't ride on sidewalks
-    0
-
-assign badoneway =
-       if reversedirection=yes then
-         if oneway:bicycle=yes then true
-         else if oneway= then junction=roundabout
-         else oneway=yes|true|1
-       else oneway=-1
-
-assign onewaypenalty =
-       if ( badoneway ) then
-       (
-         if      ( cycleway=opposite|opposite_lane|opposite_track       ) then 0
-         else if ( cycleway:left=opposite|opposite_lane|opposite_track  ) then 0
-         else if ( cycleway:right=opposite|opposite_lane|opposite_track ) then 0
-         else if ( oneway:bicycle=no                         ) then 0
-         else if ( cycleway:left:oneway=no                   ) then 0
-         else if ( cycleway:right:oneway=no                  ) then 0
-         else if ( junction=roundabout|circular              ) then 60
-         else if ( highway=primary|primary_link|secondary|secondary_link              ) then 50
-         else if ( highway=tertiary|tertiary_link            ) then 20
-         else 6
-       )
-       else 0
-
+include base/way.accesspenalty.brf
+include base/way.oneway.brf
 
 # add estimate tags
 assign traffic_penalty
@@ -319,38 +269,4 @@ assign costfactor
 
 ---context:node  # following code refers to node tags
 
-assign applyDirection =
-    switch and direction=backward way:isreversed 1
-    switch and direction=backward not way:isreversed 0
-    switch and direction=forward not way:isreversed 1
-    switch and direction=forward way:isreversed 0
-    0
-
-assign applyTrafficDirection
-    switch and traffic_signals:direction=backward way:isreversed 1
-    switch and traffic_signals:direction=backward not way:isreversed 0
-    switch and traffic_signals:direction=forward not way:isreversed 1
-    switch and traffic_signals:direction=forward way:isreversed 0
-    0
-
-assign barrierPenalty
-	switch barrier=block|bollard 25
-	switch barrier=gate|swing_gate|lift_gate|entrance 50
-	switch barrier=cycle_barrier 90
-	switch and traffic_calming=bump applyDirection 25
-	switch and traffic_calming=cushion applyDirection 10
-		0
-
-assign crossingsPenalty
-	switch railway=level_crossing 300
-	switch and highway=traffic_signals applyTrafficDirection traffic_lights_avoideness
-	switch highway=crossing 25
-	switch and highway=give_way applyDirection 80
-	switch and highway=stop applyDirection 120
-		0
-
-assign initialcost =
-	add barrierPenalty
-	add crossingsPenalty
-    0
-
+include base/node.brf

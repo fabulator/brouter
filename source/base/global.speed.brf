@@ -1,0 +1,6 @@
+# Kinematic model parameters (travel time computation)
+assign totalMass  = 86     # %totalMass% | Celková váha (kolo, výbava + jezdec), pouze pro výpočet času jízdy | number
+assign maxSpeed   = 60
+assign S_C_x      = 0.225  # %S_C_x% | Odpor vzduchu, pouze pro výpočet času jízdy | number
+assign C_r        = CR_SPEED   # %C_r% | Odpor plášťů, pouze pro výpočet času jízdy | number
+assign bikerPower = 180    # %bikerPower% | Průměrný výkon ve W, pouze pro výpočet času jízdy | number

@@ -1,0 +1,97 @@
+#
+# It tries to find a long distance MTB route
+# It preferes MTB trails, paved climbs and unpaved downhills
+
+---context:global   # following code refers to global config
+
+# Bike profile
+assign validForBikes = true
+
+# Change elevation parameters
+assign downhillcost       = 0    # %downhillcost% | Cena za jízdu z kopce | number
+assign downhillcutoff     = 8   # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
+assign uphillcost         = 0     # %uphillcost% | Cena za jízdu do kopce | number
+assign uphillcutoff       = 5   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
+
+include base/global.speed.brf CR_SPEED=0.03
+
+# Turn instructions settings
+assign turnInstructionMode          = 1
+assign turnInstructionCatchingRange = 40
+assign turnInstructionRoundabouts   = true
+assign considerTurnRestrictions     = true
+
+assign processUnusedTags            = true
+
+---context:way   # following code refers to way-tags
+
+assign baseCost 4.6
+
+include base/way.surface.brf
+include base/way.initialcost.brf
+include base/way.accesspenalty.brf
+include base/way.oneway.brf
+
+assign isreversed = reversedirection=yes
+
+include base/way.town.brf TOWN_FACTOR=baseCost
+
+assign wayCost
+    switch    route=ferry                                                                          10000 # not passable
+    switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
+    switch    highway=steps                                                                        10
+    switch    highway=primary|primary_link                                                         10
+    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway                                   baseCost
+    10000 # I can't ride on not roads
+
+assign surfaceCostFactor
+    switch    isPaved 1.4
+    switch    isSmoothUnpaved 1
+    switch    isUnpaved 1.1
+    1
+
+assign any_hiking_route or route=hiking         or route_hiking_iwn=yes
+						or route_hiking_nwn=yes	or route_hiking_rwn=yes
+						or route_hiking_lwn=yes or route_hiking_=yes
+                        or route_foot_=yes      or route_foot_nwn=yes
+						or route_foot_rwn=yes      route_foot_lwn=yes
+
+assign any_cycleroute =
+     if      route_bicycle_icn=yes then true
+     else if route_bicycle_ncn=yes then true
+     else if route_bicycle_rcn=yes then true
+     else if route_bicycle_lcn=yes then true
+     else false
+
+assign mtb_route
+     switch route_mtb_=yes  true
+     false
+
+assign markedPaths
+    switch    or any_cycleroute any_hiking_route 1.3
+    switch    or mtb_route and highway=path bicycle=designated 0.4
+    1.5
+
+assign costfactor
+  add onewaypenalty
+  add accesspenalty
+  add town_penalty
+  multiply multiply markedPaths wayCost surfaceCostFactor
+
+assign downhillcostfactor
+    switch isUnpaved multiply costfactor 0.5
+    switch isSmoothUnpaved multiply costfactor 0.6
+    multiply markedPaths costfactor
+
+assign uphillcostfactor
+    switch or mtb_route or isPaved isSmoothUnpaved multiply costfactor 0.5
+    multiply markedPaths costfactor
+
+assign turncost
+    switch junction=roundabout 0
+    switch and highway=path bicycle=designated 0
+    100
+
+---context:node
+
+include base/node.brf traffic_lights_avoideness=200

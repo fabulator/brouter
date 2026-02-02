@@ -1,0 +1,11 @@
+assign town_penalty_factor TOWN_FACTOR
+
+assign town_penalty
+   switch estimated_town_class=   multiply 0 town_penalty_factor
+   switch estimated_town_class=1  multiply 0.2 town_penalty_factor
+   switch estimated_town_class=2  multiply 0.6 town_penalty_factor
+   switch estimated_town_class=3  multiply 0.8 town_penalty_factor
+   switch estimated_town_class=4  multiply 1 town_penalty_factor
+   switch estimated_town_class=5  multiply 1.2 town_penalty_factor
+   switch estimated_town_class=6  multiply 2 town_penalty_factor
+   99

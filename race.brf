@@ -74,7 +74,7 @@ assign surface
     switch tracktype=grade2                     surface_fine_gravel
     switch tracktype=grade3                     surface_gravel
     switch tracktype=grade4|grade5              surface_unpaved
-    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential         surface_asphalt
+    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified         surface_asphalt
     surface_unpaved
 
 assign isPaved or surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood equal surface surface_asphalt

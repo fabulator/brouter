@@ -1,0 +1,58 @@
+assign surfaceCost
+    switch or surface=asphalt|concrete equal surface surface_asphalt
+        switch or smoothness=excellent equal smoothness smoothness_excellent           1.00
+        switch or smoothness=good equal smoothness smoothness_good                     1.05
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.2
+        switch or smoothness=bad equal smoothness smoothness_bad                       1.5
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             2
+        switch or smoothness=horrible equal smoothness smoothness_horrible             3
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   4
+                                                                                      10.0
+    switch surface=paving_stones|wood|metal|paved
+        switch or smoothness=excellent equal smoothness smoothness_excellent           1.1
+        switch or smoothness=good equal smoothness smoothness_good                     1.15
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.3
+        switch or smoothness=bad equal smoothness smoothness_bad                       1.5
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             2
+        switch or smoothness=horrible equal smoothness smoothness_horrible             3
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   4
+                                                                                      10.0
+    switch surface=sett|grass_paver|cobblestone
+        switch or smoothness=excellent equal smoothness smoothness_excellent           1.2
+        switch or smoothness=good equal smoothness smoothness_good                     1.25
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.5
+        switch or smoothness=bad equal smoothness smoothness_bad                       2.0
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             3.5
+        switch or smoothness=horrible equal smoothness smoothness_horrible             4.5
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   5.5
+                                                                                      10.0
+    switch or surface=compacted|fine_gravel equal surface surface_fine_gravel
+        switch or smoothness=excellent equal smoothness smoothness_excellent            multiply unpavedFactor 1.5
+        switch or smoothness=good equal smoothness smoothness_good                      multiply unpavedFactor 1.8
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      multiply unpavedFactor 2.5
+        switch or smoothness=bad equal smoothness smoothness_bad                        multiply unpavedFactor 4
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
+                                                                                       multiply unpavedFactor 10.0
+
+    switch or surface=gravel|pebblestone|unpaved equal surface surface_gravel
+        switch or smoothness=excellent equal smoothness smoothness_excellent            multiply unpavedFactor 1.8
+        switch or smoothness=good equal smoothness smoothness_good                      multiply unpavedFactor 2.8
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      multiply unpavedFactor 3.8
+        switch or smoothness=bad equal smoothness smoothness_bad                       multiply unpavedFactor 10
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
+                                                                                       multiply unpavedFactor 10.0
+
+    switch or surface=ground|dirt|earth|grass|mud|sand equal surface surface_unpaved
+        switch or smoothness=excellent equal smoothness smoothness_excellent           multiply unpavedFactor  2
+        switch or smoothness=good equal smoothness smoothness_good                     multiply unpavedFactor  5
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     multiply unpavedFactor 10
+        switch or smoothness=bad equal smoothness smoothness_bad                       multiply unpavedFactor 10
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
+                                                                                       multiply unpavedFactor 10.0
+    0

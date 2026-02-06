@@ -23,7 +23,7 @@ assign barrierPenalty
 assign crossingsPenalty
 	switch railway=level_crossing 300
 	switch and highway=traffic_signals applyTrafficDirection traffic_lights_avoideness
-	switch highway=crossing 25
+	switch and highway=crossing not crossing=unmarked 25
 	switch and highway=give_way applyDirection 80
 	switch and highway=stop applyDirection 120
 		0

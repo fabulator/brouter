@@ -1,10 +1,41 @@
-assign isSurfacePaved surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood
-assign isSurfaceSmoothUnpaved or surface=compacted|fine_gravel tracktype=grade1|grade2 # this is unpaved but not so bad...
-assign isSurfaceUnpaved surface=unpaved|compacted|fine_gravel|gravel|pebblestone|ground|dirt|earth|grass|mud|sand
-assign isUnknown and not isSurfacePaved not isSurfaceUnpaved
+assign smoothness_excellent           = 1
+assign smoothness_good                = 2
+assign smoothness_intermediate        = 3
+assign smoothness_bad                 = 4
+assign smoothness_very_bad            = 5
+assign smoothness_horrible            = 6
+assign smoothness_very_horrible       = 7
+assign smoothness_impassable          = 8
 
-assign isPavedByDefault highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential
+#TODO: Check all highway types
+assign smoothness
+    switch and not smoothness= not smoothness=unknown                                     smoothness
+    # defaults smoothness if smoothness tag is not set, based on tracktype and highway
+    switch tracktype=grade1                                                               smoothness_good
+    switch tracktype=grade2                                                               smoothness_intermediate
+    switch tracktype=grade3                                                               smoothness_bad
+    switch tracktype=grade4|grade5                                                        smoothness_very_bad
+    switch highway=primary|primary_link                                                   smoothness_excellent
+    switch highway=secondary|secondary_link|cycleway|rest_area|living_street|residential  smoothness_good
+    switch highway=tertiary|tertiary_link|service|track|unclassified                      smoothness_intermediate
+    switch highway=bridleway|road|path|footway                                            smoothness_bad
+    smoothness_impassable
 
-assign isPaved or isSurfacePaved and isUnknown isPavedByDefault
-assign isSmoothUnpaved isSurfaceSmoothUnpaved
+assign surface_asphalt             = 1
+assign surface_fine_gravel         = 2
+assign surface_gravel              = 3
+assign surface_unpaved             = 4
+
+#TODO: Check all highway types
+assign surface
+    switch and not surface= not surface=unknown surface
+    # defaults surface if surface tag is not set, based on tracktype and highway
+    switch tracktype=grade1                     surface_asphalt
+    switch tracktype=grade2                     surface_fine_gravel
+    switch tracktype=grade3                     surface_gravel
+    switch tracktype=grade4|grade5              surface_unpaved
+    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential         surface_asphalt
+    surface_unpaved
+
+assign isPaved or surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood equal surface surface_asphalt
 assign isUnpaved not isPaved

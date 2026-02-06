@@ -2,5 +2,5 @@ assign accesspenalty
     switch motorroad=yes 10000 # I can't access motorroads
     switch highway=motorway|motorway_link 10000 # I can't access highways
     switch or access=private or access=no bicycle=private 10000 # I can't access private roads
-    switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes ) 5 # I shoudn't ride on sidewalks
+    switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes|designated ) 5 # I shoudn't ride on sidewalks
     0

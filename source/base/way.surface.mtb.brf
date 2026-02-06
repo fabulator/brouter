@@ -1,0 +1,31 @@
+assign isSmoothUnpaved
+    switch or surface=compacted|fine_gravel equal surface surface_fine_gravel
+        switch or smoothness=excellent equal smoothness smoothness_excellent            true
+        switch or smoothness=good equal smoothness smoothness_good                      true
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      true
+        switch or smoothness=bad equal smoothness smoothness_bad                        true
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             false
+        switch or smoothness=horrible equal smoothness smoothness_horrible             false
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   false
+                                                                                       false
+
+    switch or surface=gravel|pebblestone|unpaved equal surface surface_gravel
+        switch or smoothness=excellent equal smoothness smoothness_excellent            true
+        switch or smoothness=good equal smoothness smoothness_good                      true
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      true
+        switch or smoothness=bad equal smoothness smoothness_bad                        false
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad              false
+        switch or smoothness=horrible equal smoothness smoothness_horrible              false
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    false
+                                                                                        false
+
+    switch or surface=ground|dirt|earth|grass|mud|sand equal surface surface_unpaved
+        switch or smoothness=excellent equal smoothness smoothness_excellent           true
+        switch or smoothness=good equal smoothness smoothness_good                     true
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     false
+        switch or smoothness=bad equal smoothness smoothness_bad                       false
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             false
+        switch or smoothness=horrible equal smoothness smoothness_horrible             false
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   false
+                                                                                       false
+    0

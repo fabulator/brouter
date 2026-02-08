@@ -39,7 +39,7 @@ include base/way.oneway.brf
 
 assign isreversed = reversedirection=yes
 
-include base/way.town.brf TOWN_FACTOR=2
+include base/way.town.brf TOWN_FACTOR=1
 
 assign wayPenaltyCost
     switch    route=ferry                                                                             10000 # not passable

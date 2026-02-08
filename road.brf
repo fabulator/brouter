@@ -187,7 +187,7 @@ assign onewaypenalty =
 
 assign isreversed = reversedirection=yes
 
-assign town_penalty_factor 2
+assign town_penalty_factor 1
 
 assign town_penalty
    switch estimated_town_class=   multiply 0 town_penalty_factor

@@ -25,8 +25,6 @@ assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-assign baseCost 4
-
 include base/way.surface.brf
 include base/way.surface.mtb.brf
 include base/way.initialcost.brf
@@ -35,31 +33,7 @@ include base/way.oneway.brf
 
 assign isreversed = reversedirection=yes
 
-include base/way.town.brf TOWN_FACTOR=baseCost
-
-assign forbidenRoadsPenalty
-    switch    route=ferry                                                                          10000 # not passable
-    switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
-    switch    highway=steps|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway                                   0
-    10000 # I can't ride on not roads
-
-assign surfacePenaltyFlat
-    switch    isPaved 0.5
-    switch    isSmoothUnpaved 0
-    switch    isUnpaved 0.1
-    0
-
-assign surfacePenaltyUphill
-    switch    isPaved 0
-    switch    isSmoothUnpaved 0
-    switch    isUnpaved 0.4
-    0
-
-assign surfacePenaltyDownhill
-    switch    isPaved 1
-    switch    isSmoothUnpaved 0.8
-    switch    isUnpaved 0
-    0
+include base/way.town.brf TOWN_FACTOR=1
 
 assign any_hiking_route or route=hiking         or route_hiking_iwn=yes
 						or route_hiking_nwn=yes	or route_hiking_rwn=yes
@@ -81,40 +55,71 @@ assign mtb_route
 
 assign markedPaths
     switch    mtb_route 0
-    switch    or any_cycleroute any_hiking_route 2
-    4
+    switch    or any_cycleroute any_hiking_route 1
+    2
 
-assign costfactor
+assign markedPathsUphill
+    switch    or any_cycleroute mtb_route 0
+    2
+
+assign bigRoadPenalty
+     switch highway=primary|primary_link       2
+     switch highway=secondary|secondary_link  0.6
+     0
+
+assign baseCost
   add onewaypenalty
   add accesspenalty
   add town_penalty
+  add bigRoadPenalty
+  0
+
+assign surfacePenaltyFlat
+    switch    equal roadDifficulty    0 1.5
+    switch    equal roadDifficulty    1 0.2
+    switch    equal roadDifficulty    2 0
+    switch    equal roadDifficulty    3 0
+    switch    equal roadDifficulty    4 0.5
+    switch    equal roadDifficulty    5 1
+    0
+
+assign surfacePenaltyUphill
+    switch    equal roadDifficulty    0 1
+    switch    equal roadDifficulty    1 0
+    switch    equal roadDifficulty    2 0
+    switch    equal roadDifficulty    3 5
+    switch    equal roadDifficulty    4 8
+    switch    equal roadDifficulty    5 10
+    0
+
+assign surfacePenaltyDownhill
+    switch    equal roadDifficulty    0 2
+    switch    equal roadDifficulty    1 1
+    switch    equal roadDifficulty    2 0.5
+    switch    equal roadDifficulty    3 0
+    switch    equal roadDifficulty    4 0
+    switch    equal roadDifficulty    5 0.3
+    0
+
+assign costfactor
+  add baseCost
   add surfacePenaltyFlat
   add markedPaths
-  add forbidenRoadsPenalty
   2
 
 assign downhillcostfactor
-    add onewaypenalty
-    add accesspenalty
-    add town_penalty
-    add surfacePenaltyUphill
+    add baseCost
+    add surfacePenaltyDownhill
     add markedPaths
-    add forbidenRoadsPenalty
     0
 
 assign uphillcostfactor
-    add onewaypenalty
-    add accesspenalty
-    add town_penalty
-    add surfacePenaltyDownhill
-    add markedPaths
-    add forbidenRoadsPenalty
+    add baseCost
+    add surfacePenaltyUphill
+    add markedPathsUphill
     0
 
-assign turncost
-    switch junction=roundabout 0
-    switch mtb_route 0
-    100
+assign turncost 0
 
 ---context:node
 

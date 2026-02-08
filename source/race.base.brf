@@ -12,12 +12,12 @@ assign validForBikes = true
 assign allow_steps           = true   # %allow_steps% | Povolit schody | boolean
 
 # Change elevation parameters
-assign downhillcost       = 0    # %downhillcost% | Cena za jízdu z kopce | number
-assign downhillcutoff     = 8   # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
-assign uphillcost         = 10     # %uphillcost% | Cena za jízdu do kopce | number
-assign uphillcutoff       = 0   # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
+assign downhillcost       = 0     # %downhillcost% | Cena za jízdu z kopce | number
+assign downhillcutoff     = 0     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
+assign uphillcost         = 10    # %uphillcost% | Cena za jízdu do kopce | number
+assign uphillcutoff       = 0     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
-assign primaryCost         = 0     # %primaryCost% | Cena za jízdu po silnici první třídy | number
+assign primaryCost         = 0    # %primaryCost% | Cena za jízdu po silnici první třídy | number
 assign unpavedFactor       = 1    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
 
 include base/global.speed.brf CR_SPEED=0.01
@@ -43,11 +43,10 @@ assign isreversed = reversedirection=yes
 include base/way.town.brf TOWN_FACTOR=1
 
 assign wayPenaltyCost
-    switch    route=ferry                                                                          10000 # not passable
-    switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
-    switch    highway=steps                                                                        switch allow_steps 10 10000
-    switch    highway=primary|primary_link                                                         primaryCost
-    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway                                   0
+    switch    route=ferry                                                                             10000 # not passable
+    switch    highway=steps                                                                           switch allow_steps 10 10000
+    switch    highway=primary|primary_link                                                            primaryCost
+    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway|raceway|corridor|platform|crossing   0
     10000 # I can't ride on not roads
 
 # on these road I wont be able to ride fast

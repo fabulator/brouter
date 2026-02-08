@@ -7,26 +7,25 @@ assign smoothness_horrible            = 6
 assign smoothness_very_horrible       = 7
 assign smoothness_impassable          = 8
 
-#TODO: Check all highway types
 assign smoothness
-    switch and not smoothness= not smoothness=unknown                                     smoothness
+    switch smoothness=very_good                                                                   smoothness_good
+    switch and not smoothness= not smoothness=unknown                                             smoothness
     # defaults smoothness if smoothness tag is not set, based on tracktype and highway
-    switch tracktype=grade1                                                               smoothness_good
-    switch tracktype=grade2                                                               smoothness_intermediate
-    switch tracktype=grade3                                                               smoothness_bad
-    switch tracktype=grade4|grade5                                                        smoothness_very_bad
-    switch highway=primary|primary_link                                                   smoothness_excellent
-    switch highway=secondary|secondary_link|cycleway|rest_area|living_street|residential  smoothness_good
-    switch highway=tertiary|tertiary_link|service|track|unclassified                      smoothness_intermediate
-    switch highway=bridleway|road|path|footway                                            smoothness_bad
-    smoothness_impassable
+    switch tracktype=grade1                                                                       smoothness_good
+    switch tracktype=grade2                                                                       smoothness_intermediate
+    switch tracktype=grade3                                                                       smoothness_bad
+    switch tracktype=grade4|grade5                                                                smoothness_very_bad
+    switch highway=primary|primary_link|raceway|corridor                                          smoothness_excellent
+    switch highway=secondary|secondary_link|cycleway|rest_area|living_street|residential|steps|platform|crossing  smoothness_good
+    switch highway=tertiary|tertiary_link|service|track|unclassified|footway                      smoothness_intermediate
+    switch highway=bridleway|road|path                                                            smoothness_bad
+                                                                                                  smoothness_impassable
 
 assign surface_asphalt             = 1
 assign surface_fine_gravel         = 2
 assign surface_gravel              = 3
 assign surface_unpaved             = 4
 
-#TODO: Check all highway types
 assign surface
     switch and not surface= not surface=unknown surface
     # defaults surface if surface tag is not set, based on tracktype and highway
@@ -34,8 +33,8 @@ assign surface
     switch tracktype=grade2                     surface_fine_gravel
     switch tracktype=grade3                     surface_gravel
     switch tracktype=grade4|grade5              surface_unpaved
-    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified         surface_asphalt
-    surface_unpaved
+    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|steps|platform         surface_asphalt
+                                                surface_unpaved
 
 assign isPaved or surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood equal surface surface_asphalt
 assign isUnpaved not isPaved

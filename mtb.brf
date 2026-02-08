@@ -31,8 +31,6 @@ assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-assign baseCost 4
-
 assign smoothness_excellent           = 1
 assign smoothness_good                = 2
 assign smoothness_intermediate        = 3
@@ -42,26 +40,25 @@ assign smoothness_horrible            = 6
 assign smoothness_very_horrible       = 7
 assign smoothness_impassable          = 8
 
-#TODO: Check all highway types
 assign smoothness
-    switch and not smoothness= not smoothness=unknown                                     smoothness
+    switch smoothness=very_good                                                                   smoothness_good
+    switch and not smoothness= not smoothness=unknown                                             smoothness
     # defaults smoothness if smoothness tag is not set, based on tracktype and highway
-    switch tracktype=grade1                                                               smoothness_good
-    switch tracktype=grade2                                                               smoothness_intermediate
-    switch tracktype=grade3                                                               smoothness_bad
-    switch tracktype=grade4|grade5                                                        smoothness_very_bad
-    switch highway=primary|primary_link                                                   smoothness_excellent
-    switch highway=secondary|secondary_link|cycleway|rest_area|living_street|residential  smoothness_good
-    switch highway=tertiary|tertiary_link|service|track|unclassified                      smoothness_intermediate
-    switch highway=bridleway|road|path|footway                                            smoothness_bad
-    smoothness_impassable
+    switch tracktype=grade1                                                                       smoothness_good
+    switch tracktype=grade2                                                                       smoothness_intermediate
+    switch tracktype=grade3                                                                       smoothness_bad
+    switch tracktype=grade4|grade5                                                                smoothness_very_bad
+    switch highway=primary|primary_link|raceway|corridor                                          smoothness_excellent
+    switch highway=secondary|secondary_link|cycleway|rest_area|living_street|residential|steps|platform|crossing  smoothness_good
+    switch highway=tertiary|tertiary_link|service|track|unclassified|footway                      smoothness_intermediate
+    switch highway=bridleway|road|path                                                            smoothness_bad
+                                                                                                  smoothness_impassable
 
 assign surface_asphalt             = 1
 assign surface_fine_gravel         = 2
 assign surface_gravel              = 3
 assign surface_unpaved             = 4
 
-#TODO: Check all highway types
 assign surface
     switch and not surface= not surface=unknown surface
     # defaults surface if surface tag is not set, based on tracktype and highway
@@ -69,42 +66,46 @@ assign surface
     switch tracktype=grade2                     surface_fine_gravel
     switch tracktype=grade3                     surface_gravel
     switch tracktype=grade4|grade5              surface_unpaved
-    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified         surface_asphalt
-    surface_unpaved
+    switch highway=primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|steps|platform         surface_asphalt
+                                                surface_unpaved
 
 assign isPaved or surface=paved|asphalt|concrete|paving_stones|grass_paver|sett|cobblestone|metal|wood equal surface surface_asphalt
 assign isUnpaved not isPaved
 
-assign isSmoothUnpaved
+assign roadDifficulty
+    switch isPaved                                                                      0
+    switch sac_scale=demanding_mountain_hiking                                          5
+    switch incline=25%                                                                  5
+    switch mtb:scale=1                                                                  2
     switch or surface=compacted|fine_gravel equal surface surface_fine_gravel
-        switch or smoothness=excellent equal smoothness smoothness_excellent            true
-        switch or smoothness=good equal smoothness smoothness_good                      true
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate      true
-        switch or smoothness=bad equal smoothness smoothness_bad                        true
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             false
-        switch or smoothness=horrible equal smoothness smoothness_horrible             false
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   false
-                                                                                       false
+        switch or smoothness=excellent equal smoothness smoothness_excellent            1
+        switch or smoothness=good equal smoothness smoothness_good                      2
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      2
+        switch or smoothness=bad equal smoothness smoothness_bad                        3
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad              4
+        switch or smoothness=horrible equal smoothness smoothness_horrible              5
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    5
+                                                                                        5
 
     switch or surface=gravel|pebblestone|unpaved equal surface surface_gravel
-        switch or smoothness=excellent equal smoothness smoothness_excellent            true
-        switch or smoothness=good equal smoothness smoothness_good                      true
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate      true
-        switch or smoothness=bad equal smoothness smoothness_bad                        false
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad              false
-        switch or smoothness=horrible equal smoothness smoothness_horrible              false
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    false
-                                                                                        false
+        switch or smoothness=excellent equal smoothness smoothness_excellent            1
+        switch or smoothness=good equal smoothness smoothness_good                      2
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate      3
+        switch or smoothness=bad equal smoothness smoothness_bad                        4
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad              5
+        switch or smoothness=horrible equal smoothness smoothness_horrible              5
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    5
+                                                                                        5
 
     switch or surface=ground|dirt|earth|grass|mud|sand equal surface surface_unpaved
-        switch or smoothness=excellent equal smoothness smoothness_excellent           true
-        switch or smoothness=good equal smoothness smoothness_good                     true
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate     false
-        switch or smoothness=bad equal smoothness smoothness_bad                       false
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             false
-        switch or smoothness=horrible equal smoothness smoothness_horrible             false
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   false
-                                                                                       false
+        switch or smoothness=excellent equal smoothness smoothness_excellent           1
+        switch or smoothness=good equal smoothness smoothness_good                     2
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     3
+        switch or smoothness=bad equal smoothness smoothness_bad                       4
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             5
+        switch or smoothness=horrible equal smoothness smoothness_horrible             5
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   5
+                                                                                       5
     0
 
 # classifier constants
@@ -121,13 +122,13 @@ assign initialclassifier =
 assign initialcost =
     if equal initialclassifier classifier_ferry then 10000
     else if and equal initialclassifier classifier_crossing crossing=traffic_signals then 300
-    else if equal initialclassifier classifier_crossing then 150
+    else if equal initialclassifier classifier_crossing then 100
     else 0
 
 assign accesspenalty
     switch motorroad=yes 10000 # I can't access motorroads
-    switch highway=motorway|motorway_link 10000 # I can't access highways
-    switch or access=private or access=no bicycle=private 10000 # I can't access private roads
+    switch highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned 10000 # I can't access highways
+    switch or access=private|no bicycle=private 10000 # I can't access private roads
     switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes|designated ) 5 # I shoudn't ride on sidewalks
     0
 
@@ -157,7 +158,7 @@ assign onewaypenalty =
 
 assign isreversed = reversedirection=yes
 
-assign town_penalty_factor baseCost
+assign town_penalty_factor 1
 
 assign town_penalty
    switch estimated_town_class=   multiply 0 town_penalty_factor
@@ -169,30 +170,6 @@ assign town_penalty
    switch estimated_town_class=6  multiply 2 town_penalty_factor
    99
 
-
-assign forbidenRoadsPenalty
-    switch    route=ferry                                                                          10000 # not passable
-    switch    highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned      10000 # not passable
-    switch    highway=steps|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway                                   0
-    10000 # I can't ride on not roads
-
-assign surfacePenaltyFlat
-    switch    isPaved 0.5
-    switch    isSmoothUnpaved 0
-    switch    isUnpaved 0.1
-    0
-
-assign surfacePenaltyUphill
-    switch    isPaved 0
-    switch    isSmoothUnpaved 0
-    switch    isUnpaved 0.4
-    0
-
-assign surfacePenaltyDownhill
-    switch    isPaved 1
-    switch    isSmoothUnpaved 0.8
-    switch    isUnpaved 0
-    0
 
 assign any_hiking_route or route=hiking         or route_hiking_iwn=yes
 						or route_hiking_nwn=yes	or route_hiking_rwn=yes
@@ -214,40 +191,71 @@ assign mtb_route
 
 assign markedPaths
     switch    mtb_route 0
-    switch    or any_cycleroute any_hiking_route 2
-    4
+    switch    or any_cycleroute any_hiking_route 1
+    2
 
-assign costfactor
+assign markedPathsUphill
+    switch    or any_cycleroute mtb_route 0
+    2
+
+assign bigRoadPenalty
+     switch highway=primary|primary_link       2
+     switch highway=secondary|secondary_link  0.6
+     0
+
+assign baseCost
   add onewaypenalty
   add accesspenalty
   add town_penalty
+  add bigRoadPenalty
+  0
+
+assign surfacePenaltyFlat
+    switch    equal roadDifficulty    0 1.5
+    switch    equal roadDifficulty    1 0.2
+    switch    equal roadDifficulty    2 0
+    switch    equal roadDifficulty    3 0
+    switch    equal roadDifficulty    4 0.5
+    switch    equal roadDifficulty    5 1
+    0
+
+assign surfacePenaltyUphill
+    switch    equal roadDifficulty    0 1
+    switch    equal roadDifficulty    1 0
+    switch    equal roadDifficulty    2 0
+    switch    equal roadDifficulty    3 5
+    switch    equal roadDifficulty    4 8
+    switch    equal roadDifficulty    5 10
+    0
+
+assign surfacePenaltyDownhill
+    switch    equal roadDifficulty    0 2
+    switch    equal roadDifficulty    1 1
+    switch    equal roadDifficulty    2 0.5
+    switch    equal roadDifficulty    3 0
+    switch    equal roadDifficulty    4 0
+    switch    equal roadDifficulty    5 0.3
+    0
+
+assign costfactor
+  add baseCost
   add surfacePenaltyFlat
   add markedPaths
-  add forbidenRoadsPenalty
   2
 
 assign downhillcostfactor
-    add onewaypenalty
-    add accesspenalty
-    add town_penalty
-    add surfacePenaltyUphill
+    add baseCost
+    add surfacePenaltyDownhill
     add markedPaths
-    add forbidenRoadsPenalty
     0
 
 assign uphillcostfactor
-    add onewaypenalty
-    add accesspenalty
-    add town_penalty
-    add surfacePenaltyDownhill
-    add markedPaths
-    add forbidenRoadsPenalty
+    add baseCost
+    add surfacePenaltyUphill
+    add markedPathsUphill
     0
 
-assign turncost
-    switch junction=roundabout 0
-    switch mtb_route 0
-    100
+assign turncost 0
 
 ---context:node
 

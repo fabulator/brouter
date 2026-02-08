@@ -12,5 +12,5 @@ assign initialclassifier =
 assign initialcost =
     if equal initialclassifier classifier_ferry then 10000
     else if and equal initialclassifier classifier_crossing crossing=traffic_signals then 300
-    else if equal initialclassifier classifier_crossing then 150
+    else if equal initialclassifier classifier_crossing then 100
     else 0

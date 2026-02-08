@@ -71,7 +71,7 @@ assign initialclassifier =
 assign initialcost =
     if equal initialclassifier classifier_ferry then 10000
     else if and equal initialclassifier classifier_crossing crossing=traffic_signals then 300
-    else if equal initialclassifier classifier_crossing then 150
+    else if equal initialclassifier classifier_crossing then 100
     else 0
 
 
@@ -122,8 +122,8 @@ assign turncost = if is_ldcr then 0
 
 assign accesspenalty
     switch motorroad=yes 10000 # I can't access motorroads
-    switch highway=motorway|motorway_link 10000 # I can't access highways
-    switch or access=private or access=no bicycle=private 10000 # I can't access private roads
+    switch highway=motorway|motorway_link|trunk|trunk_link|construction|proposed|abandoned 10000 # I can't access highways
+    switch or access=private|no bicycle=private 10000 # I can't access private roads
     switch or bicycle=no ( and highway=footway and footway=sidewalk not bicycle=yes|designated ) 5 # I shoudn't ride on sidewalks
     0
 

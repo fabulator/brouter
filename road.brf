@@ -1,6 +1,6 @@
 #
 # Originaly a fastbike profile
-# Modified for road racing
+# Modified for road traveling - it prefers cycling infrastructure, roads without cars and cycling routes, but it is not a must.
 #
 
 ---context:global   # following code refers to global config
@@ -8,17 +8,16 @@
 # Bike profile
 assign validForBikes = true
 
-# Use the following switches to change behaviour
-assign allow_steps           = true   # %allow_steps% | Povolit schody | boolean
-
 # Change elevation parameters
 assign downhillcost       = 0     # %downhillcost% | Cena za jízdu z kopce | number
 assign downhillcutoff     = 0     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
 assign uphillcost         = 10    # %uphillcost% | Cena za jízdu do kopce | number
-assign uphillcutoff       = 0     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
+assign uphillcutoff       = 10     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
-assign primaryCost         = 0    # %primaryCost% | Cena za jízdu po silnici první třídy | number
-assign unpavedFactor       = 1    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
+assign primaryCost         = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
+assign unpavedFactor       = 2.5    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
+assign forestFactor         = 0.5    # %forestFactor% | Ovlivní routování přes lesy, 0.5 znamená o 50% nižší náklady mimo les oproti defaultu. 0 faktor lesů vypne | number
+assign cyclingInfrastuctureFactor         = 0.7    # %cyclingInfrastuctureFactor% | Ovlivní routování přes cyklistickou infrastrukturu a trasy. 0.5 znamená o 50% nižší náklady trasám bez infrastruktury oproti defaultu. 0 faktor infrastruktury vypne a bude se soutředit na kvalitu cest | number
 
 # Kinematic model parameters (travel time computation)
 assign totalMass  = 86     # %totalMass% | Celková váha (kolo, výbava + jezdec), pouze pro výpočet času jízdy | number
@@ -188,7 +187,7 @@ assign onewaypenalty =
 
 assign isreversed = reversedirection=yes
 
-assign town_penalty_factor 1
+assign town_penalty_factor 2
 
 assign town_penalty
    switch estimated_town_class=   multiply 0 town_penalty_factor
@@ -203,7 +202,7 @@ assign town_penalty
 
 assign wayPenaltyCost
     switch    route=ferry                                                                             10000 # not passable
-    switch    highway=steps                                                                           switch allow_steps 10 10000
+    switch    highway=steps                                                                           10000
     switch    highway=primary|primary_link                                                            primaryCost
     switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway|raceway|corridor|platform|crossing   0
     10000 # I can't ride on not roads
@@ -211,8 +210,33 @@ assign wayPenaltyCost
 # on these road I wont be able to ride fast
 assign trafficPenaltyCost
   switch highway=pedestrian|footway     0.2
-  switch highway=living_street          0.1
   0
+
+assign hascycleway
+    switch cycleway=                                                         false
+    switch and not isreversed and not cycleway:right=no not cycleway:right=  true
+    switch and isreversed and not cycleway:left=no not cycleway:left=        true
+    switch cycleway=no                                                       false
+    false
+
+assign any_cycleroute  or route_bicycle_icn=yes or route_bicycle_ncn=yes or route_bicycle_rcn=yes or route_bicycle_lcn=yes route=bicycle
+
+assign unsafePenaltyCost
+  switch bicycle=designated                                 0
+  switch motor_vehicle=no|private|agricultural              0
+  switch hascycleway                                        0
+  switch any_cycleroute                                     multiply 0.5 cyclingInfrastuctureFactor
+  switch or hgv=no|destination maxspeed=30                  multiply 0.6 cyclingInfrastuctureFactor
+                                                            multiply 1.3 cyclingInfrastuctureFactor
+assign no_forest_penalty
+     switch estimated_forest_class=   multiply 1 forestFactor
+     switch estimated_forest_class=1  multiply 0.5 forestFactor
+     switch estimated_forest_class=2  multiply 0.4 forestFactor
+     switch estimated_forest_class=3  multiply 0.25 forestFactor
+     switch estimated_forest_class=4  multiply 0.15 forestFactor
+     switch estimated_forest_class=5  multiply 0.1 forestFactor
+     switch estimated_forest_class=6  multiply 0  forestFactor
+     99
 
 assign costfactor
   add onewaypenalty
@@ -221,10 +245,12 @@ assign costfactor
   add surfaceCost
   add trafficPenaltyCost
   add wayPenaltyCost
+  add unsafePenaltyCost
+  add no_forest_penalty
   0
 
 # faster road, bigger turn cost
-assign turncost = if junction=roundabout then 0 else divide 100 costfactor
+assign turncost = if junction=roundabout then 0 else divide 130 costfactor
 
 ---context:node  # following code refers to node tags
 

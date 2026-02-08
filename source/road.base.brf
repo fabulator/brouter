@@ -12,7 +12,7 @@ assign validForBikes = true
 assign downhillcost       = 0     # %downhillcost% | Cena za jízdu z kopce | number
 assign downhillcutoff     = 0     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
 assign uphillcost         = 10    # %uphillcost% | Cena za jízdu do kopce | number
-assign uphillcutoff       = 10     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
+assign uphillcutoff       = 5     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
 assign primaryCost         = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
 assign unpavedFactor       = 2.5    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number

@@ -32,22 +32,13 @@ assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-include base/way.surface.brf
-include base/way.surface.road.brf
+include surfaces/way.surface.brf
+include surfaces/way.surface.road.brf
 include base/way.initialcost.brf
 include base/way.accesspenalty.brf
 include base/way.oneway.brf
-
-assign isreversed = reversedirection=yes
-
 include base/way.town.brf TOWN_FACTOR=1
-
-assign wayPenaltyCost
-    switch    route=ferry                                                                             10000 # not passable
-    switch    highway=steps                                                                           switch allow_steps 10 10000
-    switch    highway=primary|primary_link                                                            primaryCost
-    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway|raceway|corridor|platform|crossing   0
-    10000 # I can't ride on not roads
+include base/way.penalty.brf
 
 # on these road I wont be able to ride fast
 assign trafficPenaltyCost

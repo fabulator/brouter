@@ -1,6 +1,6 @@
 #
 # Originaly a fastbike profile
-# Modified for road traveling - it prefers cycling infrastructure, roads without cars and cycling routes, but it is not a must.
+# Modified for gravel traveling - it prefers cycling infrastructure, roads without cars and cycling routes, but it is not a must. It prefers light terrain over asphalt.
 #
 
 ---context:global   # following code refers to global config
@@ -9,14 +9,14 @@
 assign validForBikes = true
 
 # Change elevation parameters
-assign downhillcost       = 0     # %downhillcost% | Cena za jízdu z kopce | number
-assign downhillcutoff     = 0     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
+assign downhillcost       = 10     # %downhillcost% | Cena za jízdu z kopce | number
+assign downhillcutoff     = 20     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
 assign uphillcost         = 10    # %uphillcost% | Cena za jízdu do kopce | number
 assign uphillcutoff       = 5     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
-assign primaryCost         = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
-assign unpavedFactor       = 2.5    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
-assign forestFactor         = 0.5    # %forestFactor% | Ovlivní routování přes lesy, 0.5 znamená o 50% nižší náklady mimo les oproti defaultu. 0 faktor lesů vypne | number
+assign primaryCost          = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
+assign pavedFactor          = 1.4    # %pavedFactor% | Ovlivní routování přes zpevněné cesty, 0.5 znamená o 50% nižší náklady po zpevněných cestách defaultu. | number
+assign forestFactor         = 0.8    # %forestFactor% | Ovlivní routování přes lesy, 0.5 znamená o 50% nižší náklady mimo les oproti defaultu. 0 faktor lesů vypne | number
 assign cyclingInfrastuctureFactor         = 0.7    # %cyclingInfrastuctureFactor% | Ovlivní routování přes cyklistickou infrastrukturu a trasy. 0.5 znamená o 50% nižší náklady trasám bez infrastruktury oproti defaultu. 0 faktor infrastruktury vypne a bude se soutředit na kvalitu cest | number
 
 # Kinematic model parameters (travel time computation)
@@ -82,61 +82,61 @@ assign isUnpaved not isPaved
 
 assign surfaceCost
     switch or surface=asphalt|concrete equal surface surface_asphalt
-        switch or smoothness=excellent equal smoothness smoothness_excellent           1.00
-        switch or smoothness=good equal smoothness smoothness_good                     1.05
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.2
-        switch or smoothness=bad equal smoothness smoothness_bad                       1.5
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             2
-        switch or smoothness=horrible equal smoothness smoothness_horrible             3
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   4
+        switch or smoothness=excellent equal smoothness smoothness_excellent           multiply 1.5 pavedFactor
+        switch or smoothness=good equal smoothness smoothness_good                     multiply 1.5 pavedFactor
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     multiply 1.5 pavedFactor
+        switch or smoothness=bad equal smoothness smoothness_bad                       multiply 1.5 pavedFactor
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply 2 pavedFactor
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply 3 pavedFactor
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply 4 pavedFactor
                                                                                       10
     switch surface=paving_stones|wood|metal|paved
-        switch or smoothness=excellent equal smoothness smoothness_excellent           1.1
-        switch or smoothness=good equal smoothness smoothness_good                     1.15
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.3
-        switch or smoothness=bad equal smoothness smoothness_bad                       1.5
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             2
-        switch or smoothness=horrible equal smoothness smoothness_horrible             3
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   4
+        switch or smoothness=excellent equal smoothness smoothness_excellent           multiply 1.5 pavedFactor
+        switch or smoothness=good equal smoothness smoothness_good                     multiply 1.5 pavedFactor
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     multiply 1.5 pavedFactor
+        switch or smoothness=bad equal smoothness smoothness_bad                       multiply 1.5 pavedFactor
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply 2 pavedFactor
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply 3 pavedFactor
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply 4 pavedFactor
                                                                                       10
     switch surface=sett|grass_paver|cobblestone
-        switch or smoothness=excellent equal smoothness smoothness_excellent           1.2
-        switch or smoothness=good equal smoothness smoothness_good                     1.25
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate     1.5
-        switch or smoothness=bad equal smoothness smoothness_bad                       2.0
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             3.5
-        switch or smoothness=horrible equal smoothness smoothness_horrible             4.5
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   5.5
+        switch or smoothness=excellent equal smoothness smoothness_excellent           multiply 1.5 pavedFactor
+        switch or smoothness=good equal smoothness smoothness_good                     multiply 1.5 pavedFactor
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate     multiply 1.5 pavedFactor
+        switch or smoothness=bad equal smoothness smoothness_bad                       multiply 2.0 pavedFactor
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply 3.5 pavedFactor
+        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply 4.5 pavedFactor
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply 5.5 pavedFactor
                                                                                       10
     switch or surface=compacted|fine_gravel equal surface surface_fine_gravel
-        switch or smoothness=excellent equal smoothness smoothness_excellent            multiply unpavedFactor 1.5
-        switch or smoothness=good equal smoothness smoothness_good                      multiply unpavedFactor 1.8
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate      multiply unpavedFactor 2.5
-        switch or smoothness=bad equal smoothness smoothness_bad                        multiply unpavedFactor 4
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
-        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
-                                                                                       multiply unpavedFactor 10
+        switch or smoothness=excellent equal smoothness smoothness_excellent             1
+        switch or smoothness=good equal smoothness smoothness_good                       1
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate       1.2
+        switch or smoothness=bad equal smoothness smoothness_bad                         1.5
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad               2
+        switch or smoothness=horrible equal smoothness smoothness_horrible               4
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible     5
+                                                                                        10
 
     switch or surface=gravel|pebblestone|unpaved equal surface surface_gravel
-        switch or smoothness=excellent equal smoothness smoothness_excellent            multiply unpavedFactor 1.8
-        switch or smoothness=good equal smoothness smoothness_good                      multiply unpavedFactor 2.8
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate      multiply unpavedFactor 3.8
-        switch or smoothness=bad equal smoothness smoothness_bad                       multiply unpavedFactor 10
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
-        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
-                                                                                       multiply unpavedFactor 10
+        switch or smoothness=excellent equal smoothness smoothness_excellent             1.2
+        switch or smoothness=good equal smoothness smoothness_good                       1.4
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate       1.6
+        switch or smoothness=bad equal smoothness smoothness_bad                         2
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad               4
+        switch or smoothness=horrible equal smoothness smoothness_horrible               5
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    10
+                                                                                        10
 
     switch or surface=ground|dirt|earth|grass|mud|sand equal surface surface_unpaved
-        switch or smoothness=excellent equal smoothness smoothness_excellent           multiply unpavedFactor  2
-        switch or smoothness=good equal smoothness smoothness_good                     multiply unpavedFactor  5
-        switch or smoothness=intermediate equal smoothness smoothness_intermediate     multiply unpavedFactor 10
-        switch or smoothness=bad equal smoothness smoothness_bad                       multiply unpavedFactor 10
-        switch or smoothness=very_bad equal smoothness smoothness_very_bad             multiply unpavedFactor 10
-        switch or smoothness=horrible equal smoothness smoothness_horrible             multiply unpavedFactor 10
-        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible   multiply unpavedFactor 10
-                                                                                       multiply unpavedFactor 10
+        switch or smoothness=excellent equal smoothness smoothness_excellent             1.3
+        switch or smoothness=good equal smoothness smoothness_good                       1.6
+        switch or smoothness=intermediate equal smoothness smoothness_intermediate       2
+        switch or smoothness=bad equal smoothness smoothness_bad                         4
+        switch or smoothness=very_bad equal smoothness smoothness_very_bad               5
+        switch or smoothness=horrible equal smoothness smoothness_horrible              10
+        switch or smoothness=very_horrible equal smoothness smoothness_very_horrible    10
+                                                                                        10
     0
 
 # classifier constants
@@ -226,7 +226,8 @@ assign unsafePenaltyCost
   switch bicycle=designated                                 0
   switch motor_vehicle=no|private|agricultural              0
   switch hascycleway                                        0
-  switch any_cycleroute                                     multiply 0.5 cyclingInfrastuctureFactor
+  switch isUnpaved                                          0
+  switch any_cycleroute                                     multiply 0.2 cyclingInfrastuctureFactor
   switch or hgv=no|destination maxspeed=30                  multiply 0.6 cyclingInfrastuctureFactor
                                                             multiply 1.3 cyclingInfrastuctureFactor
 assign no_forest_penalty

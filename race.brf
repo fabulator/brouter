@@ -185,7 +185,6 @@ assign onewaypenalty =
        )
        else 0
 
-
 assign isreversed = reversedirection=yes
 
 assign town_penalty_factor 1
@@ -200,13 +199,13 @@ assign town_penalty
    switch estimated_town_class=6  multiply 2 town_penalty_factor
    99
 
-
 assign wayPenaltyCost
     switch    route=ferry                                                                             10000 # not passable
     switch    highway=steps                                                                           switch allow_steps 10 10000
     switch    highway=primary|primary_link                                                            primaryCost
     switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway|raceway|corridor|platform|crossing   0
     10000 # I can't ride on not roads
+
 
 # on these road I wont be able to ride fast
 assign trafficPenaltyCost

@@ -1,0 +1,6 @@
+assign wayPenaltyCost
+    switch    route=ferry                                                                             10000 # not passable
+    switch    highway=steps                                                                           switch allow_steps 10 10000
+    switch    highway=primary|primary_link                                                            primaryCost
+    switch    highway=secondary|secondary_link|tertiary|tertiary_link|cycleway|rest_area|pedestrian|residential|living_street|service|residential|unclassified|bridleway|track|road|path|footway|raceway|corridor|platform|crossing   0
+    10000 # I can't ride on not roads

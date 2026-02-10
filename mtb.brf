@@ -155,6 +155,8 @@ assign onewaypenalty =
        )
        else 0
 
+assign isreversed = reversedirection=yes
+
 
 assign isreversed = reversedirection=yes
 

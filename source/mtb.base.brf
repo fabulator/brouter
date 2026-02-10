@@ -25,8 +25,8 @@ assign processUnusedTags            = true
 
 ---context:way   # following code refers to way-tags
 
-include base/way.surface.brf
-include base/way.surface.mtb.brf
+include surfaces/way.surface.brf
+include surfaces/way.surface.mtb.brf
 include base/way.initialcost.brf
 include base/way.accesspenalty.brf
 include base/way.oneway.brf

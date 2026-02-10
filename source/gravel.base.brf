@@ -1,6 +1,6 @@
 #
 # Originaly a fastbike profile
-# Modified for road traveling - it prefers cycling infrastructure, roads without cars and cycling routes, but it is not a must.
+# Modified for gravel traveling - it prefers cycling infrastructure, roads without cars and cycling routes, but it is not a must. It prefers light terrain over asphalt.
 #
 
 ---context:global   # following code refers to global config
@@ -9,14 +9,14 @@
 assign validForBikes = true
 
 # Change elevation parameters
-assign downhillcost       = 0     # %downhillcost% | Cena za jízdu z kopce | number
-assign downhillcutoff     = 0     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
+assign downhillcost       = 10     # %downhillcost% | Cena za jízdu z kopce | number
+assign downhillcutoff     = 20     # %downhillcutoff% | Nižší sklon než tento se do jízdy z kopce nezapočítá. | number
 assign uphillcost         = 10    # %uphillcost% | Cena za jízdu do kopce | number
 assign uphillcutoff       = 5     # %uphillcutoff% | Nižší sklon než tento se do jízdy do kopce nezapočítá.  | number
 
-assign primaryCost         = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
-assign unpavedFactor       = 2.5    # %unpavedFactor% | Ovlivní routování přes nezpevněné cesty, 0.5 znamená o 50% nižší náklady oproti defaultu | number
-assign forestFactor         = 0.5    # %forestFactor% | Ovlivní routování přes lesy, 0.5 znamená o 50% nižší náklady mimo les oproti defaultu. 0 faktor lesů vypne | number
+assign primaryCost          = 1    # %primaryCost% | Cena za jízdu po silnici první třídy | number
+assign pavedFactor          = 1.4    # %pavedFactor% | Ovlivní routování přes zpevněné cesty, 0.5 znamená o 50% nižší náklady po zpevněných cestách defaultu. | number
+assign forestFactor         = 0.8    # %forestFactor% | Ovlivní routování přes lesy, 0.5 znamená o 50% nižší náklady mimo les oproti defaultu. 0 faktor lesů vypne | number
 assign cyclingInfrastuctureFactor         = 0.7    # %cyclingInfrastuctureFactor% | Ovlivní routování přes cyklistickou infrastrukturu a trasy. 0.5 znamená o 50% nižší náklady trasám bez infrastruktury oproti defaultu. 0 faktor infrastruktury vypne a bude se soutředit na kvalitu cest | number
 
 include base/global.speed.brf CR_SPEED=0.01
@@ -34,7 +34,7 @@ assign processUnusedTags            = true
 assign allow_steps false
 
 include surfaces/way.surface.brf
-include surfaces/way.surface.road.brf
+include surfaces/way.surface.gravel.brf
 include base/way.initialcost.brf
 include base/way.accesspenalty.brf
 include base/way.oneway.brf
@@ -59,10 +59,11 @@ assign unsafePenaltyCost
   switch bicycle=designated                                 0
   switch motor_vehicle=no|private|agricultural              0
   switch hascycleway                                        0
-  switch any_cycleroute                                     multiply 0.5 cyclingInfrastuctureFactor
-  switch or hgv=no|destination maxspeed=30                  multiply 0.6 cyclingInfrastuctureFactor
+  switch isUnpaved                                          0
+  switch any_cycleroute                                     multiply 0.2 cyclingInfrastuctureFactor
+  switch or hgv=no|destination maxspeed=30|50               multiply 0.6 cyclingInfrastuctureFactor
                                                             multiply 1.3 cyclingInfrastuctureFactor
-assign no_forest_penalty
+assign noForestPenalty
      switch estimated_forest_class=   multiply 1 forestFactor
      switch estimated_forest_class=1  multiply 0.5 forestFactor
      switch estimated_forest_class=2  multiply 0.4 forestFactor
@@ -80,7 +81,7 @@ assign costfactor
   add trafficPenaltyCost
   add wayPenaltyCost
   add unsafePenaltyCost
-  add no_forest_penalty
+  add noForestPenalty
   0
 
 # faster road, bigger turn cost

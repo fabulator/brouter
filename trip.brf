@@ -150,6 +150,8 @@ assign onewaypenalty =
        )
        else 0
 
+assign isreversed = reversedirection=yes
+
 
 # add estimate tags
 assign traffic_penalty

@@ -9,7 +9,14 @@ assign smoothness_impassable          = 8
 
 assign smoothness
     switch smoothness=very_good                                                                   smoothness_good
-    switch and not smoothness= not smoothness=unknown                                             smoothness
+    switch smoothness=excellent                                                                   smoothness_excellent
+    switch smoothness=good                                                                        smoothness_good
+    switch smoothness=intermediate                                                                smoothness_intermediate
+    switch smoothness=bad                                                                         smoothness_bad
+    switch smoothness=very_bad                                                                    smoothness_very_bad
+    switch smoothness=horrible                                                                    smoothness_horrible
+    switch smoothness=very_horrible                                                               smoothness_very_horrible
+    switch smoothness=impassable                                                                  smoothness_impassable
     # defaults smoothness if smoothness tag is not set, based on tracktype and highway
     switch tracktype=grade1                                                                       smoothness_good
     switch tracktype=grade2                                                                       smoothness_intermediate
@@ -22,12 +29,19 @@ assign smoothness
                                                                                                   smoothness_impassable
 
 assign surface_asphalt             = 1
-assign surface_fine_gravel         = 2
-assign surface_gravel              = 3
-assign surface_unpaved             = 4
+assign surface_paved               = 2
+assign surface_fine_gravel         = 3
+assign surface_gravel              = 4
+assign surface_unpaved             = 5
+assign surface_sett                = 6
 
 assign surface
-    switch and not surface= not surface=unknown surface
+    switch surface=asphalt|concrete                 surface_asphalt
+    switch surface=paving_stones|wood|metal|paved   surface_paved
+    switch surface=sett|grass_paver|cobblestone     surface_sett
+    switch surface=compacted|fine_gravel            surface_fine_gravel
+    switch surface=gravel|pebblestone|unpaved       surface_gravel
+    switch surface=ground|dirt|earth|grass|mud|sand surface_unpaved
     # defaults surface if surface tag is not set, based on tracktype and highway
     switch tracktype=grade1                     surface_asphalt
     switch tracktype=grade2                     surface_fine_gravel

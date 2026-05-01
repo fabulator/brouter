@@ -50,7 +50,14 @@ assign smoothness_impassable          = 8
 
 assign smoothness
     switch smoothness=very_good                                                                   smoothness_good
-    switch and not smoothness= not smoothness=unknown                                             smoothness
+    switch smoothness=excellent                                                                   smoothness_excellent
+    switch smoothness=good                                                                        smoothness_good
+    switch smoothness=intermediate                                                                smoothness_intermediate
+    switch smoothness=bad                                                                         smoothness_bad
+    switch smoothness=very_bad                                                                    smoothness_very_bad
+    switch smoothness=horrible                                                                    smoothness_horrible
+    switch smoothness=very_horrible                                                               smoothness_very_horrible
+    switch smoothness=impassable                                                                  smoothness_impassable
     # defaults smoothness if smoothness tag is not set, based on tracktype and highway
     switch tracktype=grade1                                                                       smoothness_good
     switch tracktype=grade2                                                                       smoothness_intermediate
@@ -63,12 +70,19 @@ assign smoothness
                                                                                                   smoothness_impassable
 
 assign surface_asphalt             = 1
-assign surface_fine_gravel         = 2
-assign surface_gravel              = 3
-assign surface_unpaved             = 4
+assign surface_paved               = 2
+assign surface_fine_gravel         = 3
+assign surface_gravel              = 4
+assign surface_unpaved             = 5
+assign surface_sett                = 6
 
 assign surface
-    switch and not surface= not surface=unknown surface
+    switch surface=asphalt|concrete                 surface_asphalt
+    switch surface=paving_stones|wood|metal|paved   surface_paved
+    switch surface=sett|grass_paver|cobblestone     surface_sett
+    switch surface=compacted|fine_gravel            surface_fine_gravel
+    switch surface=gravel|pebblestone|unpaved       surface_gravel
+    switch surface=ground|dirt|earth|grass|mud|sand surface_unpaved
     # defaults surface if surface tag is not set, based on tracktype and highway
     switch tracktype=grade1                     surface_asphalt
     switch tracktype=grade2                     surface_fine_gravel
@@ -228,9 +242,9 @@ assign unsafePenaltyCost
   switch hascycleway                                        0
   switch isUnpaved                                          0
   switch any_cycleroute                                     multiply 0.2 cyclingInfrastuctureFactor
-  switch or hgv=no|destination maxspeed=30                  multiply 0.6 cyclingInfrastuctureFactor
+  switch or hgv=no|destination maxspeed=30|50               multiply 0.6 cyclingInfrastuctureFactor
                                                             multiply 1.3 cyclingInfrastuctureFactor
-assign no_forest_penalty
+assign noForestPenalty
      switch estimated_forest_class=   multiply 1 forestFactor
      switch estimated_forest_class=1  multiply 0.5 forestFactor
      switch estimated_forest_class=2  multiply 0.4 forestFactor
@@ -248,7 +262,7 @@ assign costfactor
   add trafficPenaltyCost
   add wayPenaltyCost
   add unsafePenaltyCost
-  add no_forest_penalty
+  add noForestPenalty
   0
 
 # faster road, bigger turn cost
@@ -279,7 +293,7 @@ assign barrierPenalty
 		0
 
 assign crossingsPenalty
-	switch railway=level_crossing 300
+	switch or railway=level_crossing railway=crossing 300
 	switch and highway=traffic_signals applyTrafficDirection 200
 	switch and highway=crossing not crossing=unmarked 25
 	switch and highway=give_way applyDirection 80
